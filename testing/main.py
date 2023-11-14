@@ -2,37 +2,87 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 from time import sleep
 
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
 
-#Bước 1: Truy cập https://online.hcmute.edu.vn/
-url = 'https://online.hcmute.edu.vn/'
-driver.get(url)
 
-#Bước 2: Đăng nhập
-mssv = 'mssv'
-pasword = 'password'
-btnLogin = driver.find_element(By.CSS_SELECTOR, '#ctl00_lbtDangnhap')
-btnLogin.click()
+test_cases = [
+    {
+        'weight': 70,
+        'height': 175,
+        'bmi_score': 22.86,
+        'status': 'Normal'
+    },
+    {
+        'weight': 50,
+        'height': 160,
+        'bmi_score': 19.53,
+        'status': 'Normal'
+    },
+    {
+        'weight': 90,
+        'height': 180,
+        'bmi_score': 27.78,
+        'status': 'Overweight'
+    },
+    {
+        'weight': 120,
+        'height': 190,
+        'bmi_score': 33.24,
+        'status': 'Obese'
+    },
+    {
+        'weight': 40,
+        'height': 150,
+        'bmi_score': 17.78,
+        'status': 'Underweight'
+    },
+    {
+        'weight': 60,
+        'height': 0,
+        'bmi_score': 'Error',
+        'status': 'Error'
+    }
+]
 
-#Bước 3: Điền thông tin đăng nhập
-txtMSSV = driver.find_element(By.CSS_SELECTOR, '#ctl00_ContentPlaceHolder1_ctl00_ctl00_txtUserName')
-txtMSSV.send_keys(mssv)
+driver.get('https://minhtumtn.github.io/BMI-Calculator/')
+txt_weight = driver.find_element(By.ID, 'weight')
+txt_height = driver.find_element(By.ID, 'height')
 
-txtPassword = driver.find_element(By.CSS_SELECTOR, '#ctl00_ContentPlaceHolder1_ctl00_ctl00_txtPassword')
-txtPassword.send_keys(pasword)
+bmi_score_result = driver.find_element(By.CSS_SELECTOR, '#result > div:nth-child(1)')
+bmi_status_result = driver.find_element(By.CSS_SELECTOR, '#result > div:nth-child(2)')
+for index, test_case in enumerate(test_cases):
+    txt_weight.send_keys(Keys.CONTROL,"a", Keys.DELETE)
+    txt_height.send_keys(Keys.CONTROL,"a", Keys.DELETE)
+    txt_weight.send_keys(test_case['weight'])
+    txt_height.send_keys(test_case['height'])
 
-btnLogin = driver.find_element(By.CSS_SELECTOR, '#ctl00_ContentPlaceHolder1_ctl00_ctl00_btLogin')
-btnLogin.click()
+    sleep(1)
 
-#Bước 4: Truy cập trang thời khóa biểu
-btnTKB = driver.find_element(By.CSS_SELECTOR, '#ctl00_ContentPlaceHolder1_ctl00_ctl00_lnkThoiKhoaBieu')
-btnTKB.click()
+    print('Test case #{}'.format(index + 1))
+    # Expected result
+    print('Expected result: ')
+    print('BMI score: {}'.format(test_case['bmi_score']))
+    print('BMI status: {}'.format(test_case['status']))
 
-#Bước 5: Lấy thông tin thời khóa biểu
-cell = driver.find_element(By.CSS_SELECTOR, '#ctl00_ContentPlaceHolder1_ctl00_ctl00_ctl00_tblThoiKhoaBieu > tbody > tr:nth-child(3) > td:nth-child(2)')
-print(cell.text)
+    # Actual result
+    print('Actual result: ')
+    print('BMI score: {}'.format(bmi_score_result.text.split(' ')[-1]))
+    print('BMI status: {}'.format(bmi_status_result.text.split(' ')[-1]))
 
-driver.close()
+    # Test case result
+    print('Test case result: ', end='')
+    if float(bmi_score_result.text.split(' ')[-1]) == test_case['bmi_score'] and bmi_status_result.text.split(' ')[-1] == test_case['status']:
+        # Print passed with green color
+        print('\033[92m' + 'Passed' + '\033[0m')
+    else:
+        # Print failed with red color
+        print('\033[91m' + 'Failed' + '\033[0m')
+    
+    print('----------------------------------------')
+
+    
+driver.quit()
